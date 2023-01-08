@@ -1,5 +1,5 @@
 {
-    "name": "phuocnguyen/thumbnail",
+    "name": "phuocnguyen/laravel-thumbnail",
     "description": "This package is used to create thumbnail images for document files. It supports the following file types: doc, docx, xls, xlsx, gif, jpg, jpeg, png.",
     "authors": [
         {
@@ -9,8 +9,15 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": "^8.0",
-        "ext-imagick": "*"
+        "php": ">=8.0",
+        "illuminate/support": ">=8.0",
+        "illuminate/filesystem": ">=8.0",
+        "laravel/framework": ">=8.0"
+    },
+    "config": {
+        "platform": {
+            "ext-imagick": "*"
+        }
     },
     "autoload": {
         "psr-4": {
@@ -26,6 +33,5 @@
                 "PhuocNguyen\\Thumbnail\\ThumbnailServiceProvider"
             ]
         }
-    },
-    "version": "0.1"
+    }
 }

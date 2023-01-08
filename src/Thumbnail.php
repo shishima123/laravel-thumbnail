@@ -2,20 +2,26 @@
 
 namespace PhuocNguyen\Thumbnail;
 
+use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Imagick;
+use ImagickException;
 use PhuocNguyen\Thumbnail\Exception\ConvertToPdf;
 use PhuocNguyen\Thumbnail\Exception\FileFormatInvalid;
 use PhuocNguyen\Thumbnail\Exception\FileNotFound;
+use PhuocNguyen\Thumbnail\Helper\StorageHelper;
+use Throwable;
 
 class Thumbnail
 {
     protected string|UploadedFile $file;
 
     protected string $fileName;
+
+    protected string $originName;
 
     protected string $fileExtension = '';
 
@@ -45,17 +51,24 @@ class Thumbnail
         'png'
     ];
 
+    /**
+     * Indicates if Thumbnail migrations will be run.
+     *
+     * @var bool
+     */
+    public static bool $runsMigrations = true;
+
     public function __construct(Imagick $imagick)
     {
         $this->imagick = $imagick;
     }
 
     /**
-     * @throws \ImagickException
-     * @throws \Exception
-     * @throws \Throwable
+     * @throws ImagickException
+     * @throws Exception
+     * @throws Throwable
      */
-    public function create($file = null): string
+    public function create($file = null): array
     {
         if (!empty($file)) {
             $this->setFile($file);
@@ -65,16 +78,17 @@ class Thumbnail
             return $this->getDefaultPath();
         }
 
-        $tempPath = $this->cloneFileToTempDir($this->file);
+        $tempPath = StorageHelper::cloneFileToTempDir($this->file, $this->getFileName());
+
         $this->pretreatmentOfficeFile($tempPath);
 
         return $this->processing($tempPath);
     }
 
     /**
-     * @throws \ImagickException|FileFormatInvalid
+     * @throws ImagickException|FileFormatInvalid
      */
-    protected function processing($tempPath): string
+    protected function processing($tempPath): array
     {
         $fileName = Str::of(pathinfo($tempPath, PATHINFO_FILENAME))
             ->beforeLast('_')
@@ -85,7 +99,7 @@ class Thumbnail
             ->snake();
 
         $fileOutPutDir = config('filesystems.disks.thumbnail.root');
-        $this->createDirectory();
+        StorageHelper::createDirectory();
         $fileOutPut = $fileOutPutDir . '/' . $fileName;
 
         $this->imagick->readImage($tempPath);
@@ -98,10 +112,14 @@ class Thumbnail
         }
 
         if ($this->shouldRemoveTempFile) {
-            $this->removeFile($tempPath);
+            StorageHelper::removeFile($tempPath);
         }
 
-        return Storage::disk('thumbnail')->url($fileName);
+        return [
+            'name' => $fileName->value(),
+            'original_name' => $this->originName,
+            'path' => Storage::disk('thumbnail')->url($fileName)
+        ];
     }
 
     /**
@@ -118,7 +136,7 @@ class Thumbnail
         shell_exec("unoconv -f pdf -e PageRange=1-1 $tempPath --output=$output");
 
         if (file_exists($output)) {
-            $this->removeFile($tempPath);
+            StorageHelper::removeFile($tempPath);
             return $output;
         }
 
@@ -129,28 +147,6 @@ class Thumbnail
     {
         $extensionCompare = array_diff($this->validExtensions, $this->getIgnore());
         return in_array($this->getFileExtension(), $extensionCompare, true);
-    }
-
-    protected function createDirectory($externalPath = '/', $disk = 'thumbnail'): bool
-    {
-        return Storage::disk($disk)->makeDirectory($externalPath);
-    }
-
-    protected function removeFile($fileName, $disk = 'temp_thumbnail'): bool
-    {
-        $fileName = pathinfo($fileName, PATHINFO_BASENAME);
-        return Storage::disk($disk)->delete($fileName);
-    }
-
-    protected function cloneFileToTempDir($file): string
-    {
-        if (empty($file)) {
-            throw FileNotFound::make();
-        }
-
-        Storage::disk('temp_thumbnail')->putFileAs('/', $this->file, $this->getFileName());
-
-        return Storage::disk('temp_thumbnail')->path($this->getFileName());
     }
 
     /**
@@ -197,16 +193,31 @@ class Thumbnail
         return $this;
     }
 
+    public function getFile(): string|UploadedFile
+    {
+        return $this->file;
+    }
+
     public function setHeight(int $height): static
     {
         $this->height = $height;
         return $this;
     }
 
+    public function getHeight(): int
+    {
+        return $this->height ?? config('thumbnail.thumbnail_height');
+    }
+
     public function setWidth(int $width): static
     {
         $this->width = $width;
         return $this;
+    }
+
+    public function getWidth(): int
+    {
+        return $this->width ?? config('thumbnail.thumbnail_width');
     }
 
     public function setLayer(int $layer): static
@@ -242,15 +253,48 @@ class Thumbnail
         return $this->fileExtension;
     }
 
-    public function getFile(): string|UploadedFile
+    public function setFormat(string $format): static
     {
-        return $this->file;
+        $this->format = $format;
+        return $this;
+    }
+
+    /**
+     * @throws FileFormatInvalid
+     */
+    public function getFormat(): string
+    {
+        $format = $this->format ?? config('thumbnail.thumbnail_format');
+        return $this->checkValidFormat($format);
+    }
+
+    public function setOptions(array $options): static
+    {
+        collect($options)->each(function ($value, $option) {
+            $method = 'set' . $option;
+            if (method_exists($this, $method)) {
+                call_user_func([$this, $method], $value);
+            }
+        });
+        return $this;
+    }
+
+    public function getOptions(): array
+    {
+        $options = ['width', 'height', 'format', 'layer'];
+        return collect($options)->map(function ($option) {
+            $method = 'get' . $option;
+            if (is_callable([$this, $method])) {
+                return [$option => $this->$method()];
+            }
+        })->collapse()->all();
     }
 
     public function setFileName(): static
     {
-        $fileOriginalName = $this->getFile()->getClientOriginalName();
-        $fileName = Str::of(pathinfo($fileOriginalName, PATHINFO_FILENAME))
+        $this->originName = $this->getFile()->getClientOriginalName();
+
+        $fileName = Str::of(pathinfo($this->originName, PATHINFO_FILENAME))
             ->append('_')
             ->append(uniqid())
             ->append('.')
@@ -266,48 +310,39 @@ class Thumbnail
         return $this->fileName;
     }
 
-    public function getDefaultPath(): string
+    public function getDefaultPath(): array
     {
         if (config('thumbnail.default_thumbnail')) {
-            return config('thumbnail.default_path');
+            return [
+                'name' => $this->originName,
+                'original_name' => $this->originName,
+                'path' => config('thumbnail.default_path')
+            ];
         }
-        return '';
-    }
-
-    public function getHeight(): int
-    {
-        return $this->height ?? config('thumbnail.thumbnail_height');
-    }
-
-    public function getWidth(): int
-    {
-        return $this->width ?? config('thumbnail.thumbnail_width');
-    }
-
-    public function setFormat(string $format): static
-    {
-        $this->format = $format;
-        return $this;
+        return [];
     }
 
     /**
      * @throws FileFormatInvalid
      */
-    public function getFormat(): string
-    {
-        $format = $this->format ?? config('thumbnail.thumbnail_format');
-        return $this->checkFormat($format);
-    }
-
-    /**
-     * @throws FileFormatInvalid
-     */
-    protected function checkFormat(string $format): string
+    protected function checkValidFormat(string $format): string
     {
         $validFormat = ['jpg', 'jpeg', 'png', 'gif'];
         if (!in_array($format, $validFormat)) {
             throw FileFormatInvalid::make();
         }
         return $format;
+    }
+
+    /**
+     * Configure Thumbnail to not register its migrations.
+     *
+     * @return static
+     */
+    public function ignoreMigrations(): static
+    {
+        static::$runsMigrations = false;
+
+        return $this;
     }
 }

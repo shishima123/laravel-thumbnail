@@ -27,7 +27,7 @@ return [
 
     'default_thumbnail' => true,
 
-    'default_path' => public_path('vendor/document_thumbnail/Thumbnail-default.svg'),
+    'default_path' => public_path('vendor/laravel_thumbnail/Thumbnail-default.svg'),
 
     'thumbnail_format' => 'jpg',
 
@@ -38,4 +38,14 @@ return [
     'thumbnail_layer' => 14,
 
     'ignore_extension' => [],
+
+    'table_name' => 'thumbnails',
+
+    'table_fillable' => [
+        'name',
+        'original_name',
+        'path',
+        'thumbnailable_id',
+        'thumbnailable_type'
+    ]
 ];
