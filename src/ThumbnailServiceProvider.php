@@ -19,7 +19,7 @@ class ThumbnailServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
         }
 
-        // Register the new disk configuration to filesystems
+        // Register the new disks configuration to filesystems
         app()->config["filesystems.disks"] = array_merge(config('filesystems.disks'), config('thumbnail.disks'));
     }
 

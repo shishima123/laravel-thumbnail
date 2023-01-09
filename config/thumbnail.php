@@ -25,27 +25,65 @@ return [
         ]
     ],
 
-    'default_thumbnail' => true,
+    /*
+    |--------------------------------------------------------------------------
+    | Default Thumbnail
+    |--------------------------------------------------------------------------
+    |
+    | This config is used in case if the file is not supported
+    | or there is an error in the thumbnail creation process
+    | It will return the default path.
+    |
+    */
+    'default' => [
+        'enable' => true,
+        'path' => '/vendor/laravel_thumbnail/Thumbnail-default.svg'
+    ],
 
-    'default_path' => public_path('vendor/laravel_thumbnail/Thumbnail-default.svg'),
+    /*
+    |--------------------------------------------------------------------------
+    | Options For Thumbnail
+    |--------------------------------------------------------------------------
+    |
+    | This config is used to change some properties of the thumbnail image during creation
+    | Only supports some properties such as: format, height, width, layer.
+    | If other attributes are added, the package is not supported
+    |
+    */
+    'options' => [
+        'format' => 'jpg',
+        'height' => 400,
+        'width' => 400,
+        'layer' => 14,
+    ],
 
-    'thumbnail_format' => 'jpg',
+    /*
+    |--------------------------------------------------------------------------
+    | Ignore extensions
+    |--------------------------------------------------------------------------
+    |
+    | By default, the package will generate thumbnails if the extension file is of the following formats: doc, docx, xls, xlsx, gif, jpg, jpeg, png.
+    | If you want to exclude any extension, you can use this config to exclude.
+    | E.g: 'ignore_extensions' => ['gif', 'jpg']
+    |
+    */
+    'ignore_extensions' => [],
 
-    'thumbnail_height' => 400,
+    /*
+    |--------------------------------------------------------------------------
+    | Model Table Name
+    |--------------------------------------------------------------------------
+    | This model will be used to save thumbnail.
+    | and extend Illuminate\Database\Eloquent\Model.
+     */
+    'thumbnail_model' => \PhuocNguyen\Thumbnail\Models\Thumbnail::class,
 
-    'thumbnail_width' => 400,
-
-    'thumbnail_layer' => 14,
-
-    'ignore_extension' => [],
-
+    /*
+    |--------------------------------------------------------------------------
+    | Model Table Name
+    |--------------------------------------------------------------------------
+    | This is the name of the table that will be created by the migration and
+    | used by the Thumbnail model shipped with this package.
+     */
     'table_name' => 'thumbnails',
-
-    'table_fillable' => [
-        'name',
-        'original_name',
-        'path',
-        'thumbnailable_id',
-        'thumbnailable_type'
-    ]
 ];
