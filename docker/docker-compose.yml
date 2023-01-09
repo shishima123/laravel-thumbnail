@@ -1,0 +1,55 @@
+version: '3'
+services:
+  #PHP Service
+  codebase_app:
+    build:
+      context: .
+      dockerfile: app.docker
+    container_name: codebase_app
+    volumes:
+      - ../:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./php/policy.xml:/etc/ImageMagick-6/policy.xml
+      - ./php/Module1.xba:/usr/lib/libreoffice/presets/basic/Standard/Module1.xba
+    networks:
+      - codebase-network
+    links:
+      - codebase_mysql:db
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  #Nginx Service
+  web_server:
+    image: nginx:1.21.1
+    container_name: codebase_web_server
+    ports:
+      - 8080:80
+    volumes:
+      - ../:/var/www
+      - ./nginx/vhost.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - codebase-network
+    depends_on:
+      - codebase_app
+
+  # MySQL Service
+  codebase_mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 33065:3306
+    environment:
+      MYSQL_DATABASE: codebase_db
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - codebase-network
+    volumes:
+      - codebase-mysql:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+
+#Docker Networks
+networks:
+  codebase-network:
+    driver: bridge
+volumes:
+  codebase-mysql: {}

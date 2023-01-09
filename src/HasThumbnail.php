@@ -46,10 +46,11 @@ trait HasThumbnail
      */
     protected static function eventsToCreatedThumbnail(): array
     {
+        $events = ['saved', 'updated'];
         if (isset(static::$thumbnailEvents)) {
-            return static::$thumbnailEvents;
+            return array_intersect($events, static::$thumbnailEvents);
         }
-        return ['saved', 'updated'];
+        return $events;
     }
 
     /**
