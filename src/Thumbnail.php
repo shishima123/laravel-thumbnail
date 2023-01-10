@@ -339,6 +339,19 @@ class Thumbnail
     }
 
     /**
+     * Sets the width and height of the thumbnail.
+     *
+     * @param int $width The width of the thumbnail
+     * @param int $height The height of the thumbnail
+     */
+    public function setSize(int $width, int $height): static
+    {
+        $this->setWidth($width);
+        $this->setHeight($height);
+        return $this;
+    }
+
+    /**
      * Sets the layer method to use when merging image layers.
      *
      * @param int $layer The layer method to use when merging image layers
