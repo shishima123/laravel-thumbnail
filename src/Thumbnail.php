@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Imagick;
 use ImagickException;
-use PhuocNguyen\Thumbnail\Exception\ConvertToPdf;
 use PhuocNguyen\Thumbnail\Exception\FileFormatInvalid;
 use PhuocNguyen\Thumbnail\Exception\FileNotFound;
+use PhuocNguyen\Thumbnail\Helper\OfficeHelper;
 use PhuocNguyen\Thumbnail\Helper\StorageHelper;
 use Throwable;
 
@@ -135,8 +135,7 @@ class Thumbnail
         }
 
         $tempPath = StorageHelper::cloneFileToTempDir($this->file, $this->getFileName());
-
-        $this->pretreatmentOfficeFile($tempPath);
+        $tempPath = OfficeHelper::pretreatmentOfficeFile($tempPath, $this->getFileExtension());
 
         return $this->processing($tempPath);
     }
@@ -187,35 +186,6 @@ class Thumbnail
     }
 
     /**
-     * Converts the Microsoft Office file at the given path to a PDF.
-     *
-     * This method uses the unoconv command-line utility to convert the file to a PDF. If the file is an Excel
-     * file, it first runs the "FitToPage" macro to ensure that the entire spreadsheet is visible in the PDF.
-     *
-     * @param string $tempPath The path of the Microsoft Office file to be converted
-     * @return array|string The path of the resulting PDF file, or an array containing the default thumbnail path if the conversion fails
-     * @throws ConvertToPdf If the conversion fails
-     */
-    protected function convertMsOfficeToPdf(string $tempPath): array|string
-    {
-        if ($this->isExcelFile()) {
-            $cmd = "/usr/bin/libreoffice --headless --nologo --nofirststartwizard --norestore $tempPath  macro:///Standard.Module1.FitToPage";
-            shell_exec($cmd);
-        }
-        $output = substr_replace($tempPath, 'pdf', strrpos($tempPath, '.') + 1);
-
-        shell_exec("unoconv -f pdf -e PageRange=1-1 $tempPath --output=$output");
-
-        // remove temp file after convert successfully
-        if (file_exists($output)) {
-            StorageHelper::removeFile($tempPath);
-            return $output;
-        }
-
-        throw new ConvertToPdf('Cannot Convert MsOffice To PDF.');
-    }
-
-    /**
      * Determines if the file is valid and able to be processed.
      *
      * This method checks if the file is an instance of `UploadedFile`, if it has a valid file extension, and if it
@@ -227,32 +197,6 @@ class Thumbnail
     {
         $extensionCompare = array_diff($this->validExtensions, $this->getIgnore());
         return in_array($this->getFileExtension(), $extensionCompare, true);
-    }
-
-    /**
-     * Handles any necessary conversion of Microsoft Office files to PDFs before they are processed.
-     *
-     * @param string $tempPath The path of the file to be processed
-     * @throws ConvertToPdf If the conversion to PDF fails
-     */
-    protected function pretreatmentOfficeFile(string &$tempPath): string
-    {
-        $officeExtensions = ['doc', 'docx', 'xls', 'xlsx'];
-        if (in_array($this->getFileExtension(), $officeExtensions)) {
-            $tempPath = $this->convertMsOfficeToPdf($tempPath);
-        }
-
-        return $tempPath;
-    }
-
-    /**
-     * Determines if the file is an Excel file.
-     *
-     * @return bool `true` if the file is an Excel file, `false` otherwise
-     */
-    protected function isExcelFile(): bool
-    {
-        return in_array($this->getFileExtension(), ['xls', 'xlsx']);
     }
 
     /**
@@ -434,7 +378,7 @@ class Thumbnail
     public function getFormat(): string
     {
         $format = $this->format ?? config('thumbnail.options.format');
-        $this->checkValidFormat($format);
+        $this->validateOutputFormat($format);
         return $format;
     }
 
@@ -527,7 +471,7 @@ class Thumbnail
      * @return bool A boolean value.
      * @throws FileFormatInvalid
      */
-    protected function checkValidFormat(string $format): bool
+    protected function validateOutputFormat(string $format): bool
     {
         $validFormat = ['jpg', 'jpeg', 'png', 'gif'];
         if (!in_array($format, $validFormat)) {
