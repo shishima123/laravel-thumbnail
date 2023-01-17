@@ -76,7 +76,7 @@ return [
     | This model will be used to save thumbnail.
     | and extend Illuminate\Database\Eloquent\Model.
      */
-    'thumbnail_model' => \PhuocNguyen\Thumbnail\Models\Thumbnail::class,
+    'thumbnail_model' => \Shishima\Thumbnail\Models\Thumbnail::class,
 
     /*
     |--------------------------------------------------------------------------

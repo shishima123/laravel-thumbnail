@@ -69,11 +69,11 @@ Có thể tham khảo thư mục docker để biết thêm cách setup.
 ## Installation
 Cài đặt bằng composer:
 
-    composer require phuocnguyen/laravel-thumbnail
+    composer require shishima/laravel-thumbnail
 
 ### Publish config
 
-    php artisan vendor:publish --provider="PhuocNguyen\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-config"
+    php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-config"
 
 Sau khi đã publish config thì có thể vào file `app/config/thumbnail` để chỉnh sửa.
 
@@ -110,13 +110,13 @@ Mặc định thì package hỗ trợ các extension sau: doc, docx, xls, xlsx, 
 ### Tạo file thumbnail
 Để sử dụng thì có thể sử dụng Thumbnail Facade:
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 Thumbnail::setFile($file)->create();
 ```
 File ở đây có thể là đường dẫn tới file nằm trên hệ thống.
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 $file = public_path('files/example.docx');
 Thumbnail::setFile($file)->create();
@@ -125,7 +125,7 @@ Thumbnail::setFile($file)->create();
 Hoặc sẽ là file được lấy ra từ `request` lúc dùng phương thức post ở form submit với `<input type=file>`.
 
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 Thumbnail::setFile($request->file('file'))->create();
 ```
@@ -207,12 +207,12 @@ Với các column mới được thêm thì có thể tham khảo [Custom Data S
 
 Để publish:
 
-    php artisan vendor:publish --provider="PhuocNguyen\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-migrations"
+    php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-migrations"
 
 Sau khi publish vào file `app/Providers/AppServiceProvider.php` thêm dòng lệnh bên dưới để bỏ qua file migration mặc định.
 
 ```php
-use PhuocNguyen\Thumbnail\HasThumbnail;
+use Shishima\Thumbnail\HasThumbnail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -230,7 +230,7 @@ Sau khi đã chỉnh sửa file `migration` thì dùng lệnh `php artisan migra
 Nếu muốn thay đổi tên table thì có thể thay đổi `table_name` trong file `config/thumbnail`.
 
 ### Thay đổi model
-Mặc định package sẽ dùng model `\PhuocNguyen\Thumbnail\Models\Thumbnail::class` để lưu dữ liệu vào database.
+Mặc định package sẽ dùng model `\Shishima\Thumbnail\Models\Thumbnail::class` để lưu dữ liệu vào database.
 
 Có thể thay đổi bằng cách thay đổi `thumbnail_model` trong file `config/thumbnail`.
 
@@ -240,7 +240,7 @@ Có thể thay đổi bằng cách thay đổi `thumbnail_model` trong file `con
 Ví dụ:
 
 ```php
-use PhuocNguyen\Thumbnail\HasThumbnail;
+use Shishima\Thumbnail\HasThumbnail;
 
 class Document extends Models
 {

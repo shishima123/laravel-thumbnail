@@ -1,5 +1,5 @@
 {
-    "name": "phuocnguyen/laravel-thumbnail",
+    "name": "shishima/laravel-thumbnail",
     "description": "This package is used to create thumbnail images for document files. It supports the following file types: doc, docx, xls, xlsx, gif, jpg, jpeg, png.",
     "license": "MIT",
     "authors": [
@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "PhuocNguyen\\Thumbnail\\": "src/"
+            "Shishima\\Thumbnail\\": "src/"
         },
         "classmap": [
             "src"
@@ -26,7 +26,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "PhuocNguyen\\Thumbnail\\ThumbnailServiceProvider"
+                "Shishima\\Thumbnail\\ThumbnailServiceProvider"
             ]
         }
     }

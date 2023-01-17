@@ -1,6 +1,6 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail;
+namespace Shishima\Thumbnail;
 
 use Exception;
 use Illuminate\Http\UploadedFile;
@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Imagick;
 use ImagickException;
-use PhuocNguyen\Thumbnail\Exception\FileFormatInvalid;
-use PhuocNguyen\Thumbnail\Exception\FileNotFound;
-use PhuocNguyen\Thumbnail\Helper\OfficeHelper;
-use PhuocNguyen\Thumbnail\Helper\StorageHelper;
+use Shishima\Thumbnail\Exception\FileFormatInvalid;
+use Shishima\Thumbnail\Exception\FileNotFound;
+use Shishima\Thumbnail\Helper\OfficeHelper;
+use Shishima\Thumbnail\Helper\StorageHelper;
 use Throwable;
 
 /**
@@ -22,7 +22,7 @@ use Throwable;
  * files and PDFs. It uses the Imagick library to process the files and the unoconv command-line utility
  * to convert Microsoft Office files to PDFs if necessary.
  *
- * @package PhuocNguyen\Thumbnail
+ * @package Shishima\Thumbnail
  */
 class Thumbnail
 {

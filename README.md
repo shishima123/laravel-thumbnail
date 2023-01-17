@@ -69,11 +69,11 @@ You can refer to the Docker directory for more information.
 ## Installation
 Install by using composer:
 
-    composer require phuocnguyen/laravel-thumbnail
+    composer require shishima/laravel-thumbnail
 
 ### Publish config
 
-    php artisan vendor:publish --provider="PhuocNguyen\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-config"
+    php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-config"
 
 After publishing the config, you can edit the `app/config/thumbnail` file to customize the settings.
 
@@ -107,13 +107,13 @@ By default, the package supports the following file extensions: doc, docx, xls, 
 ### Tạo file thumbnail
 To use the package, you can use the Thumbnail Facade:
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 Thumbnail::setFile($file)->create();
 ```
 The file in this example can be a path to a file on the system:
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 $file = public_path('files/example.docx');
 Thumbnail::setFile($file)->create();
@@ -122,7 +122,7 @@ Thumbnail::setFile($file)->create();
 Or it could be a file retrieved from the `request` when using the `POST` method in a form submit with `<input type="file">`.
 
 ```php
-use PhuocNguyen\Thumbnail\Facade\Thumbnail;
+use Shishima\Thumbnail\Facade\Thumbnail;
 
 Thumbnail::setFile($request->file('file'))->create();
 ```
@@ -204,12 +204,12 @@ To add new columns, you can refer to [Custom Data Save](#custom-data-save) to ad
 
 To publish:
 
-    php artisan vendor:publish --provider="PhuocNguyen\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-migrations"
+    php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-migrations"
 
 After publishing, add the following line in `app/Providers/AppServiceProvider.php` to ignore the default migration file.
 
 ```php
-use PhuocNguyen\Thumbnail\HasThumbnail;
+use Shishima\Thumbnail\HasThumbnail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -227,7 +227,7 @@ After modifying the migration file, use the `php artisan migrate` command to cre
 To change the table name, you can change `table_name` in the `config/thumbnail` file.
 
 ### Change model
-By default, the package will use the `\PhuocNguyen\Thumbnail\Models\Thumbnail::class` model to save data to the database.
+By default, the package will use the `\Shishima\Thumbnail\Models\Thumbnail::class` model to save data to the database.
 
 You can change this by changing `thumbnail_model` in the `config/thumbnail` file.
 
@@ -237,7 +237,7 @@ To use the automatic thumbnail creation feature, add the `HasThumbnail` trait to
 For example:
 
 ```php
-use PhuocNguyen\Thumbnail\HasThumbnail;
+use Shishima\Thumbnail\HasThumbnail;
 
 class Document extends Models
 {

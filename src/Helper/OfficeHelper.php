@@ -1,8 +1,8 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail\Helper;
+namespace Shishima\Thumbnail\Helper;
 
-use PhuocNguyen\Thumbnail\Exception\ConvertToPdf;
+use Shishima\Thumbnail\Exception\ConvertToPdf;
 
 class OfficeHelper
 {
@@ -36,8 +36,7 @@ class OfficeHelper
     public static function convertMsOfficeToPdf(string $tempPath, $extension): array|string
     {
         if (static::isExcelFile($extension)) {
-            $cmd = "/usr/bin/libreoffice --headless --nologo --nofirststartwizard --norestore $tempPath  macro:///Standard.Module1.FitToPage";
-            shell_exec($cmd);
+            static::addMacroToExcel($tempPath);
         }
         $output = substr_replace($tempPath, 'pdf', strrpos($tempPath, '.') + 1);
 
@@ -60,5 +59,16 @@ class OfficeHelper
     public static function isExcelFile($extension): bool
     {
         return in_array($extension, ['xls', 'xlsx']);
+    }
+
+    /**
+     * Add FitToPage macro to file excel
+     *
+     * @param string $tempPath The path to the temporary file that was created.
+     */
+    public static function addMacroToExcel(string $tempPath): void
+    {
+        $cmd = "/usr/bin/libreoffice --headless --nologo --nofirststartwizard --norestore $tempPath macro:///Standard.Module1.FitToPage";
+        shell_exec($cmd);
     }
 }

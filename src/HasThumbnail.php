@@ -1,11 +1,11 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail;
+namespace Shishima\Thumbnail;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use PhuocNguyen\Thumbnail\Facade\Thumbnail as ThumbnailInstance;
+use Shishima\Thumbnail\Facade\Thumbnail as ThumbnailInstance;
 
 trait HasThumbnail
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail\Exception;
+namespace Shishima\Thumbnail\Exception;
 
 use Exception;
 

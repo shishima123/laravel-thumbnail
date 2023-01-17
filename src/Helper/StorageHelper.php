@@ -1,10 +1,10 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail\Helper;
+namespace Shishima\Thumbnail\Helper;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use PhuocNguyen\Thumbnail\Exception\FileNotFound;
+use Shishima\Thumbnail\Exception\FileNotFound;
 
 class StorageHelper
 {

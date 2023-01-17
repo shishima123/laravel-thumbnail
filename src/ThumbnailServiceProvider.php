@@ -1,6 +1,6 @@
 <?php
 
-namespace PhuocNguyen\Thumbnail;
+namespace Shishima\Thumbnail;
 
 use Illuminate\Support\ServiceProvider;
 
