@@ -104,7 +104,7 @@ By default, the package supports the following file extensions: doc, docx, xls, 
 'ignore_extensions' => ['png', 'jpg']
 ```
 ## Usage
-### Tạo file thumbnail
+### Create thumbnail file
 To use the package, you can use the Thumbnail Facade:
 ```php
 use Shishima\Thumbnail\Facade\Thumbnail;
