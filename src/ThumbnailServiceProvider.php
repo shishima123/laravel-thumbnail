@@ -15,10 +15,6 @@ class ThumbnailServiceProvider extends ServiceProvider
     {
         $this->registerPublishing();
 
-        if (Thumbnail::$runsMigrations && $this->app->runningInConsole()) {
-            $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-        }
-
         // Register the new disks configuration to filesystems
         app()->config["filesystems.disks"] = array_merge(config('filesystems.disks'), config('thumbnail.disks'));
     }
@@ -62,7 +58,7 @@ class ThumbnailServiceProvider extends ServiceProvider
 
             $this->publishes([
                 __DIR__ . '/../public' => public_path('vendor/laravel_thumbnail'),
-            ], 'laravel-assets');
+            ], 'thumbnail-assets');
 
             $timestamp = date('Y_m_d_His', time());
             $this->publishes([

@@ -101,13 +101,6 @@ class Thumbnail
     ];
 
     /**
-     * Indicates if Thumbnail migrations will be run.
-     *
-     * @var bool
-     */
-    public static bool $runsMigrations = true;
-
-    /**
      * Thumbnail constructor.
      *
      * @param Imagick $imagick The Imagick instance to use for processing the files
@@ -478,17 +471,5 @@ class Thumbnail
             throw FileFormatInvalid::make();
         }
         return true;
-    }
-
-    /**
-     * Configure Thumbnail to not register its migrations.
-     *
-     * @return static
-     */
-    public function ignoreMigrations(): static
-    {
-        static::$runsMigrations = false;
-
-        return $this;
     }
 }

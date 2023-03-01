@@ -2,7 +2,7 @@
 This package is used to create thumbnail images for document or image files. It supports the following file formats: doc, docx, xls, xlsx, gif, jpg, jpeg, png.
 
 ## Requirements
-This package only works on a Linux environment. In order to use it, the following libs must be pre-installed on the Linux environment:
+This package only works on a Linux environment. In order to use it, the following libraries must be pre-installed on the Linux environment:
 
 #### libmagickwand
 
@@ -20,10 +20,10 @@ This package only works on a Linux environment. In order to use it, the followin
 
     sudo apt-get install unoconv
 
-These installation commands are for reference only, and the specific commands to use depend on the corresponding distro. Use the appropriate commands for your distro for more accurate installation.
+Those installation commands are for reference only, and the specific commands to use depend on the corresponding distribution. Please use the appropriate commands for your distribution to ensure accurate installation.
 
 #### Imagick
-This package uses the imagick extension of PHP to create thumbnail files, so it is necessary to install this extension.
+This package uses the Imagick extension of PHP to create thumbnail files, so it is necessary to install this extension.
 
     sudo apt install php-imagick
 
@@ -34,13 +34,13 @@ This package uses the imagick extension of PHP to create thumbnail files, so it 
 After installation, remember to restart the server to activate the extension.
 
 Copy the `policy.xml` file to the path `/etc/ImageMagick-6/policy.xml`.
-This file is used to grant imagick read and write permissions for pdf files.
+This file is used to grant Imagick read and write permissions for PDF files.
 
 Copy the `Module1.xba` file to the path `/usr/lib/libreoffice/presets/basic/Standard/Module1.xba`.
-This file is used to fix the line break issue when creating thumbnails for excel files.
+This file is used to fix the line break issue when creating thumbnails for Excel files.
 
 ### Docker
-If you are using Docker, you can add the following lines to your Docker file to install the necessary libs for Linux:
+If you are using Docker, you can add the following lines to your Dockerfile to install the necessary libraries for Linux:
 
     # Install dependencies
     RUN apt-get update && apt-get install -y \
@@ -53,9 +53,9 @@ If you are using Docker, you can add the following lines to your Docker file to 
     RUN pecl install imagick
     RUN docker-php-ext-enable imagick
 
-Copy the `policy.xml` and `Module1.xba` files into the same directory as the docker-compose.yml file.
+Copy the `policy.xml` and `Module1.xba` files into the same directory as the `docker-compose.yml` file.
 
-Then add them to the volumes section of the app.
+Then, add them to the `volumes` section of the app.
 
     laravel_app:
         // ***
@@ -64,7 +64,7 @@ Then add them to the volumes section of the app.
           - ./policy.xml:/etc/ImageMagick-6/policy.xml
           - ./Module1.xba:/usr/lib/libreoffice/presets/basic/Standard/Module1.xba
 
-You can refer to the Docker directory for more information.
+For more information, please refer to the Docker directory.
 
 ## Installation
 Install by using composer:
@@ -75,7 +75,15 @@ Install by using composer:
 
     php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-config"
 
-After publishing the config, you can edit the `app/config/thumbnail` file to customize the settings.
+After publishing the configuration file, you can edit the app/config/thumbnail file to customize the settings.
+
+#### Publish default thumbnail icon
+
+    php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-assets"
+
+A default file is published to the path `public/vendor/laravel_thumbnail/Thumbnail-default.svg`. This path is used to specify the default file. You can change it to a different path if necessary.
+
+The `default` config is used in case the file is not in the list of supported thumbnail file types. In this case, a default icon can be used as a replacement. You can disable this feature by setting `enable = false`.
 
 ### Notes
 #### Disks
@@ -90,12 +98,7 @@ By default, the files are stored in the storage directory, and if you use the de
 
     php artisan storage:link
 
-You can customize these settings if necessary.
-
-#### Default
-The `default` config is used in case the file is not in the list of supported thumbnail file types. In this case, a default icon can be used as a replacement. You can disable this feature by setting `enable = false`.
-
-By default, when the package is installed, a default file is published to the path `public/vendor/laravel_thumbnail/Thumbnail-default.svg`. This path is used to specify the default file. You can change it to a different path if necessary.
+You can customize these settings as necessary.
 
 ### Ignore extensions
 
@@ -105,13 +108,13 @@ By default, the package supports the following file extensions: doc, docx, xls, 
 ```
 ## Usage
 ### Create thumbnail file
-To use the package, you can use the Thumbnail Facade:
+To use the package, you can use the `Thumbnail` facade:
 ```php
 use Shishima\Thumbnail\Facade\Thumbnail;
 
 Thumbnail::setFile($file)->create();
 ```
-The file in this example can be a path to a file on the system:
+In this example, the file can be a path to a file on the system:
 ```php
 use Shishima\Thumbnail\Facade\Thumbnail;
 
@@ -142,7 +145,7 @@ The data returned by the `create` function will have the following format:
 ```
 
 ### Changing options
-The default options can be configured in the `config/thumbnail` file, but they can still be changed during the thumbnail generation process by using the following methods:
+The default options can be configured in the `app/config/thumbnail` file, but they can still be changed during the thumbnail generation process by using the following methods:
 #### setHeight
 Changes the default height:
 ```php
@@ -190,46 +193,31 @@ Thumbnail::setOptions($options)->create($file);
 ## Model events
 This feature relies on the model events feature of Laravel. When a request with a file upload is saved to the database, the thumbnail will be automatically created.
 
-### Migration
-This package comes with a migration file that is used to create the thumbnails table which is used to store records of the recently created thumbnail.
-
-Migrate table `thumbnails`:
-
-    php artisan migrate
-
 ### Publish migration
-To customize the columns in the thumbnails table, you can publish the migration file and make the necessary changes.
-
-To add new columns, you can refer to [Custom Data Save](#custom-data-save) to add the data.
+This package comes with a migration file that is used to create the thumbnails table which is used to store records of the recently created thumbnail.
 
 To publish:
 
     php artisan vendor:publish --provider="Shishima\Thumbnail\ThumbnailServiceProvider" --tag="thumbnail-migrations"
 
-After publishing, add the following line in `app/Providers/AppServiceProvider.php` to ignore the default migration file.
+Migrate table after publish:
 
-```php
-use Shishima\Thumbnail\HasThumbnail;
+    php artisan migrate
 
-class AppServiceProvider extends ServiceProvider
-{
-    public function register()
-    {
-        //
-        Thumbnail::ignoreMigrations();
-    }
-}
-``` 
+#### Customize migration file
+To customize the columns in the thumbnails table, you can change the generated migration file.
 
 After modifying the migration file, use the `php artisan migrate` command to create a new table.
 
+To add new columns, you can refer to [Custom Data Save](#custom-data-save) to add the data.
+
 ### Change table name
-To change the table name, you can change `table_name` in the `config/thumbnail` file.
+To change the table name, you can change `table_name` in the `app/config/thumbnail` file.
 
 ### Change model
 By default, the package will use the `\Shishima\Thumbnail\Models\Thumbnail::class` model to save data to the database.
 
-You can change this by changing `thumbnail_model` in the `config/thumbnail` file.
+You can change this by changing `thumbnail_model` in the `app/config/thumbnail` file.
 
 ### Usage
 To use the automatic thumbnail creation feature, add the `HasThumbnail` trait to the Model class:
