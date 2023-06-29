@@ -1,5 +1,5 @@
 # Laravel Document Thumbnail
-This package is used to create thumbnail images for document or image files. It supports the following file formats: doc, docx, xls, xlsx, gif, jpg, jpeg, png.
+This package is used to create thumbnail images for document or image files. It supports the following file formats: doc, docx, xls, xlsx, pdf, gif, jpg, jpeg, png.
 
 ## Requirements
 This package only works on a Linux environment. In order to use it, the following libraries must be pre-installed on the Linux environment:
@@ -102,7 +102,7 @@ You can customize these settings as necessary.
 
 ### Ignore extensions
 
-By default, the package supports the following file extensions: doc, docx, xls, xlsx, gif, jpg, jpeg, png. If you want to ignore a specific extension, add it to the `ignore_extensions` list.
+By default, the package supports the following file extensions: doc, docx, xls, xlsx, pdf, gif, jpg, jpeg, png. If you want to ignore a specific extension, add it to the `ignore_extensions` list.
 ```php
 'ignore_extensions' => ['png', 'jpg']
 ```

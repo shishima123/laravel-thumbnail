@@ -92,6 +92,12 @@ trait HasThumbnail
         if (!empty($thumbnail)) {
             $saveData = static::getSaveData($thumbnail, $file, $model);
 
+            // If the model class has a `thumbnailCustomSave()` method,
+            // that method will be called instead of saving the thumbnail to the database.
+            if (method_exists(static::class, 'thumbnailCustomSave')) {
+                return static::thumbnailCustomSave($thumbnail, $file, $model);
+            }
+
             // If the `$thumbnailUpdateWillOverwrite` property on the model class is set to `true`,
             // the latest thumbnail for the model will be overwritten instead of creating a new one.
             if (isset(static::$thumbnailUpdateWillOverwrite) && static::$thumbnailUpdateWillOverwrite) {
@@ -99,12 +105,6 @@ trait HasThumbnail
                 if ($latestThumbnail) {
                     return $latestThumbnail->fill($saveData)->save();
                 }
-            }
-
-            // If the model class has a `thumbnailCustomSave()` method,
-            // that method will be called instead of saving the thumbnail to the database.
-            if (method_exists(static::class, 'thumbnailCustomSave')) {
-                return static::thumbnailCustomSave($thumbnail, $file, $model);
             }
 
             return $model->thumbnails()->create($saveData);

@@ -11,6 +11,7 @@ use Imagick;
 use ImagickException;
 use Shishima\Thumbnail\Exception\FileFormatInvalid;
 use Shishima\Thumbnail\Exception\FileNotFound;
+use Shishima\Thumbnail\Exception\FileUploadNotSuccess;
 use Shishima\Thumbnail\Helper\OfficeHelper;
 use Shishima\Thumbnail\Helper\StorageHelper;
 use Throwable;
@@ -127,7 +128,7 @@ class Thumbnail
             return $this->getDefaultPath();
         }
 
-        $tempPath = StorageHelper::cloneFileToTempDir($this->file, $this->getFileName());
+        $tempPath = StorageHelper::cloneFileToTempDir($this->getFile(), $this->getFileName());
         $tempPath = OfficeHelper::pretreatmentOfficeFile($tempPath, $this->getFileExtension());
 
         return $this->processing($tempPath);
@@ -173,7 +174,7 @@ class Thumbnail
 
         return [
             'name' => $fileName->value(),
-            'original_name' => $this->originName,
+            'original_name' => $this->getFileOriginalName(),
             'path' => Storage::disk('thumbnail')->url($fileName)
         ];
     }
@@ -193,20 +194,66 @@ class Thumbnail
     }
 
     /**
+     * Perform pre-processing tasks on the file.
+     *
+     * @return static Returns an instance of the current object.
+     */
+    public function preProcessing(): static
+    {
+        $this
+            ->setFileExtension($this->getFile())
+            ->setFileOriginalName($this->getFile())
+            ->setFileName();
+
+        return $this;
+    }
+
+    /**
+     * Set the original name of the file.
+     *
+     * @param string|UploadedFile $file The file or uploaded file.
+     * @return static Returns an instance of the current object.
+     */
+    public function setFileOriginalName(string|UploadedFile $file): static
+    {
+        $this->originName = match (true) {
+            $file instanceof UploadedFile => $this->getFile()->getClientOriginalName(),
+            default => basename($file),
+        };
+
+        return $this;
+    }
+
+    /**
+     * Get the original name of the file.
+     *
+     * @return string The original name of the file.
+     */
+    public function getFileOriginalName(): string
+    {
+        return $this->originName;
+    }
+
+    /**
      * Sets the file to be used for generating the thumbnail.
      *
      * This method also sets the file name, origin name, and file extension based on the given file.
      *
      * @param string|UploadedFile $file The file to be used for generating the thumbnail
-     * @throws FileNotFound If the file does not exist on the filesystem
+     * @throws FileNotFound|FileUploadNotSuccess If the file does not exist on the filesystem
      */
     public function setFile(string|UploadedFile $file): static
     {
+        $fileFromRequest = true;
         if (empty($file)) {
             throw FileNotFound::make();
         }
 
         if (is_string($file)) {
+            $fileFromRequest = false;
+            if (!file_exists($file)) {
+                throw FileNotFound::make();
+            }
             $fileName = pathinfo($file, PATHINFO_BASENAME);
             $file = new UploadedFile($file, $fileName);
         }
@@ -215,10 +262,13 @@ class Thumbnail
             throw FileNotFound::make();
         }
 
+        if ($fileFromRequest && !$file->isValid()) {
+            throw FileUploadNotSuccess::make();
+        }
+
         $this->file = $file;
 
-        $this->setFileExtension();
-        $this->setFileName();
+        $this->preProcessing();
 
         return $this;
     }
@@ -335,9 +385,13 @@ class Thumbnail
      *
      * @return Thumbnail
      */
-    protected function setFileExtension(): static
+    protected function setFileExtension($file): static
     {
-        $this->fileExtension = strtolower($this->file->getClientOriginalExtension());
+        $this->fileExtension = match (true) {
+            $file instanceof UploadedFile => strtolower($this->getFile()->getClientOriginalExtension()),
+            default => pathinfo($file, PATHINFO_EXTENSION),
+        };
+
         return $this;
     }
 
@@ -406,6 +460,7 @@ class Thumbnail
             if (is_callable([$this, $method])) {
                 return [$option => $this->$method()];
             }
+            return null;
         })->collapse()->all();
     }
 
@@ -418,11 +473,11 @@ class Thumbnail
     {
         $this->originName = $this->getFile()->getClientOriginalName();
 
-        $fileName = Str::of(pathinfo($this->originName, PATHINFO_FILENAME))
+        $fileName = Str::of(pathinfo($this->getFileOriginalName(), PATHINFO_FILENAME))
             ->append('_')
             ->append(uniqid())
             ->append('.')
-            ->append($this->getFile()->getClientOriginalExtension())
+            ->append($this->getFileExtension())
             ->snake();
 
         $this->fileName = $fileName;
@@ -448,8 +503,8 @@ class Thumbnail
     {
         if (config('thumbnail.default.enable')) {
             return [
-                'name' => $this->originName,
-                'original_name' => $this->originName,
+                'name' => $this->getFileName(),
+                'original_name' => $this->getFileOriginalName(),
                 'path' => config('thumbnail.default.path')
             ];
         }
@@ -471,5 +526,16 @@ class Thumbnail
             throw FileFormatInvalid::make();
         }
         return true;
+    }
+
+    /**
+     * Set the flag to indicate that the temporary file should not be removed.
+     *
+     * @return static Returns an instance of the current object.
+     */
+    protected function doNotRemoveTempFile(): static
+    {
+        $this->shouldRemoveTempFile = false;
+        return $this;
     }
 }

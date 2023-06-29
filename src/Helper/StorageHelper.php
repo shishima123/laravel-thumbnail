@@ -42,10 +42,6 @@ class StorageHelper
      */
     public static function cloneFileToTempDir(UploadedFile $file, string $fileName): string
     {
-        if (empty($file)) {
-            throw FileNotFound::make();
-        }
-
         Storage::disk('temp_thumbnail')->putFileAs('/', $file, $fileName);
 
         return Storage::disk('temp_thumbnail')->path($fileName);
