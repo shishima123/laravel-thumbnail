@@ -100,16 +100,13 @@ default icon can be used as a replacement. You can disable this feature by setti
 
 #### Disks
 
-The `disks` config section has two configurations:
+The configuration section `disks` includes two configurations:
 
-- The __disks.temp_thumbnail__ config is used to temporarily clone the original file to the temp directory during
-  thumbnail creation, perform some modifications on it,
-  <br>and then delete it after the thumbnail is generated.
+- The __disks.temp_thumbnail__ configuration is utilized to temporarily clone the original file to the temp directory during the thumbnail creation process. <br>This allows for modifications to be made to the file before generating the thumbnail. Once the thumbnail is generated, the temporary file is deleted.
 
-- The __disk.thumbnail__ config is used to store the generated thumbnail files.
+- The __disk.thumbnail__ configuration is used to store the generated thumbnail files.
 
-By default, the files are stored in the storage directory, and if you use the default setting, you will need to create a
-symbolic link to the public directory.
+By default, these files are stored in the storage directory. If you opt to use the default configuration, you will need to create a symbolic link to the public directory.
 
     php artisan storage:link
 
@@ -117,8 +114,7 @@ You can customize these settings as necessary.
 
 ### Ignore extensions
 
-By default, the package supports the following file extensions: doc, docx, xls, xlsx, pdf, gif, jpg, jpeg, png. If you
-want to ignore a specific extension, add it to the `ignore_extensions` list.
+By default, the package supports the following file extensions: doc, docx, xls, xlsx, pdf, gif, jpg, jpeg, png. However, if you want to exclude a specific extension from being processed, you can add it to the `ignore_extensions` list.
 
 ```php
 'ignore_extensions' => ['png', 'jpg']
@@ -284,13 +280,29 @@ class Document extends Models
 }
 ``` 
 
-After adding `HasThumbnail`, whenever the current request contains a file sent from the client,<br>
-and is currently saving data through the Document Model, it will trigger the automatic creation of a thumbnail.
+### Thumbnail Event Trigger Configuration
+After adding HasThumbnail, you will need to specify the $thumbnailEventTriggerColumn. This column will store the path of the file for which you want to generate a thumbnail.
 
-### Custom events
+```php
+protected static string $thumbnailEventTriggerColumn = 'file_path';
+``` 
 
-Package supports two events: `saved` and `updated`. If you want to customize the events, you can set
-the `$thumbnailEvents` attribute in the model file:
+### Disk Configuration
+By default, the package will check files using Laravel's Storage class.
+
+If you save files using Laravel's Storage and your disk is different from the `filesystems.default` configured in `config/filesystems`, you need to configure the disk information by:
+
+```php
+protected static function getDiskOfFileUploaded(): string
+{
+    return 'local_public';
+}
+```
+__IMPORTANT!__ The current version of the package only supports disks stored locally. Cloud storage will be supported in the future.
+
+### Custom Events
+
+The package offers support for two events: `saved` and `updated`. If you wish to customize these events, you can achieve that by setting the `$thumbnailEvents` attribute in the model file.
 
 ```php
 protected static $thumbnailEvents = ['saved'];
@@ -339,13 +351,11 @@ The parameters passed are:
 - __$file__ File uploaded from the form submission
 - __$model__ Current Model performing the data save
 
-In the section above, it was mentioned that you can customize the file migration, for example, by adding a new `mime`
-column in the file migration.
+As mentioned earlier, you have the ability to customize the file migration by adding a new mime column, for instance.
 
-By default, the package does not support saving data for custom columns like this.
+By default, the package does not provide support for saving data in custom columns like this.
 
-Therefore, we can use the `thumbnailSaveData` method to customize the data before it is processed by the Thumbnail
-Model.
+To address this, you can utilize the `thumbnailSaveData` method, which allows you to customize the data before it undergoes processing by the Thumbnail Model.
 
 For example:
 
@@ -362,11 +372,9 @@ protected static function thumbnailSaveData($thumbnail, $file, $model): array
 
 ### Custom Handle Save Data
 
-If you do not want to use the default migration and model provided by the package to save the thumbnail record when the
-model events are triggered,
-you can use the `thumbnailCustomSave` method to customize this.
+If you prefer not to utilize the default migration and model included in the package for saving thumbnail records when model events are triggered, you have the option to customize this functionality using the `thumbnailCustomSave` method.
 
-For example: If the current model has a thumbnail column to save the path, it could be written as follows:
+To illustrate, let's consider a scenario where the current model has a thumbnail column for storing the file path. In this case, you can implement the following code:
 
 ```php
 protected static function thumbnailCustomSave($thumbnail, $file, $model)
@@ -384,9 +392,9 @@ errors.
 
 ### Overwrite On Update
 
-By default, each time a model event is triggered, new records will be added to the `thumbnails` table.<br>
-If you want to update the existing records when updating the data for the current model,
-use `$thumbnailUpdateWillOverwrite`:
+By default, whenever a model event is triggered, new records are added to the `thumbnails` table.
+
+However, if you wish to update the existing records when modifying data for the current model, you can make use of the `$thumbnailUpdateWillOverwrite` feature.
 
 ```php
 protected static bool $thumbnailUpdateWillOverwrite = true;

@@ -12,4 +12,11 @@ class Document extends Eloquent
     protected $table = 'documents';
 
     protected $guarded = [];
+
+    protected static string $thumbnailEventTriggerColumn = 'path';
+
+    protected static function getDiskOfFileUploaded(): string
+    {
+        return 'document';
+    }
 }

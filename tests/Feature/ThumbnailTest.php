@@ -45,9 +45,10 @@ class ThumbnailTest extends TestCase
         $this->post('/document', ['document' => $file]);
 
         Storage::disk('document')->assertExists($file->hashName());
-        static::assertDatabaseHas('thumbnails', ['original_name' => $fileName]);
+        static::assertDatabaseHas('thumbnails', ['original_name' => $file->hashName()]);
 
-        $thumbnail = ThumbnailModel::where('original_name', $fileName)->latest('id')->first();
+        $thumbnail = ThumbnailModel::where('original_name', $file->hashName())->latest('id')->first();
+
         Storage::disk('thumbnail')->assertExists($thumbnail['name']);
 
     }

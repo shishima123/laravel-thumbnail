@@ -5,6 +5,8 @@ namespace Shishima\Thumbnail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Facades\Storage;
+use Shishima\Thumbnail\Exception\ThumbnailColumnNotFound;
 use Shishima\Thumbnail\Facade\Thumbnail as ThumbnailInstance;
 
 trait HasThumbnail
@@ -26,18 +28,44 @@ trait HasThumbnail
                     return false;
                 }
 
-                $files = request()->allFiles();
-                if ( ! empty($files))
+                if ( ! isset(static::$thumbnailEventTriggerColumn))
                 {
-                    collect($files)->each(function ($file) use ($model)
-                        {
-                            static::saveThumbnail($model, $file);
-                        });
+                    throw ThumbnailColumnNotFound::make();
+                }
+
+                $isDirty = $model->isDirty(static::$thumbnailEventTriggerColumn);
+
+                if ( ! $isDirty)
+                {
+                    return false;
+                }
+
+                $fileExist = Storage::disk(static::getDisk())->exists($model[static::$thumbnailEventTriggerColumn]);
+
+                if ($fileExist)
+                {
+                    $file = Storage::disk(static::getDisk())->path($model[static::$thumbnailEventTriggerColumn]);
+                    static::saveThumbnail($model, $file);
                 }
 
                 return true;
             });
         });
+    }
+
+    /**
+     * Get the disk to use for file operations.
+     *
+     * @return string The disk name.
+     */
+    public static function getDisk()
+    {
+        if (method_exists(static::class, 'getDiskOfFileUploaded'))
+        {
+            return static::getDiskOfFileUploaded();
+        }
+
+        return config('filesystems.default');
     }
 
     /**
@@ -86,26 +114,28 @@ trait HasThumbnail
      */
     protected static function saveThumbnail($model, $file): Model|bool
     {
-        $thumbnail = ThumbnailInstance::setFile($file);
+        $thumbnailInstance = ThumbnailInstance::setFile($file);
 
         // If the `$thumbnailOptions` property on the model class is set,
         // custom options will be set separately
         if (isset(static::$thumbnailOptions))
         {
-            $thumbnail = $thumbnail->setOptions(static::$thumbnailOptions);
+            $thumbnailInstance = $thumbnailInstance->setOptions(static::$thumbnailOptions);
         }
 
-        $thumbnail = $thumbnail->create();
-        if ( ! empty($thumbnail))
+        $result = $thumbnailInstance->create();
+        if ( ! empty($result))
         {
-            $saveData = static::getSaveData($thumbnail, $file, $model);
+            $saveData = static::getSaveData($result, $thumbnailInstance->getFile(), $model);
 
             // If the model class has a `thumbnailCustomSave()` method,
             // that method will be called instead of saving the thumbnail to the database.
             if (method_exists(static::class, 'thumbnailCustomSave'))
             {
-                return static::thumbnailCustomSave($thumbnail, $file, $model);
+                return static::thumbnailCustomSave($result, $thumbnailInstance->getFile(), $model);
             }
+
+            unset($thumbnailInstance);
 
             // If the `$thumbnailUpdateWillOverwrite` property on the model class is set to `true`,
             // the latest thumbnail for the model will be overwritten instead of creating a new one.
@@ -117,7 +147,6 @@ trait HasThumbnail
                     return $latestThumbnail->fill($saveData)->save();
                 }
             }
-
             return $model->thumbnails()->create($saveData);
         }
         return true;
@@ -126,28 +155,22 @@ trait HasThumbnail
     /**
      * Returns the data to be saved for the thumbnail.
      *
-     * @param $thumbnail  // The generated thumbnail data
+     * @param $result
      * @param $file  // The file that was used to generate the thumbnail
      * @param $model  // The model the thumbnail is being saved for
      * @return array The data to be saved for the thumbnail
      */
-    public static function getSaveData($thumbnail, $file, $model): array
+    public static function getSaveData($result, $file, $model): array
     {
-        $data = [
-            'name' => $thumbnail['name'],
-            'original_name' => $thumbnail['original_name'],
-            'path' => $thumbnail['path']
-        ];
-
         // If the model class has a `thumbnailSaveData()` method,
         // that method will be called and return data to save to db
         if (method_exists(static::class, 'thumbnailSaveData'))
         {
-            $customData = static::thumbnailSaveData($thumbnail, $file, $model);
-            $data       = array_merge($data, $customData);
+            $customData = static::thumbnailSaveData($result, $file, $model);
+            $result       = array_merge($result, $customData);
         }
 
-        return $data;
+        return $result;
     }
 
     /**
