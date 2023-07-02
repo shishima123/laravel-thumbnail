@@ -51,7 +51,7 @@ return [
     |
     */
     'options' => [
-        'format' => 'jpg',
+        'format' => 'png',
         'height' => 400,
         'width' => 400,
         'layer' => 14,

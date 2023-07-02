@@ -17,16 +17,20 @@ trait HasThumbnail
      */
     public static function bootHasThumbnail(): void
     {
-        collect(static::eventsToCreatedThumbnail())->each(function ($event) {
-            return static::$event(function (Model $model) {
-                if (!static::shouldCreateThumbnail()) {
+        collect(static::eventsToCreatedThumbnail())->each(function ($event)
+        {
+            return static::$event(function (Model $model)
+            {
+                if ( ! static::shouldCreateThumbnail())
+                {
                     return false;
                 }
 
                 $files = request()->allFiles();
-                if (!empty($files)) {
-                    collect($files)
-                        ->each(function ($file) use ($model) {
+                if ( ! empty($files))
+                {
+                    collect($files)->each(function ($file) use ($model)
+                        {
                             static::saveThumbnail($model, $file);
                         });
                 }
@@ -47,7 +51,8 @@ trait HasThumbnail
     protected static function eventsToCreatedThumbnail(): array
     {
         $events = ['saved', 'updated'];
-        if (isset(static::$thumbnailEvents)) {
+        if (isset(static::$thumbnailEvents))
+        {
             return array_intersect($events, static::$thumbnailEvents);
         }
         return $events;
@@ -63,7 +68,8 @@ trait HasThumbnail
      */
     protected static function shouldCreateThumbnail(): bool
     {
-        if (isset(static::$doNotCreateThumbnail) && static::$doNotCreateThumbnail) {
+        if (isset(static::$doNotCreateThumbnail) && static::$doNotCreateThumbnail)
+        {
             return false;
         }
         return true;
@@ -74,8 +80,8 @@ trait HasThumbnail
      * This method creates a thumbnail from the given file using the `Thumbnail` class, and saves it to the database
      * as a `Thumbnail` model.
      *
-     * @param $model // The model to save the thumbnail for
-     * @param $file // The file to create the thumbnail from
+     * @param $model  // The model to save the thumbnail for
+     * @param $file  // The file to create the thumbnail from
      * @return bool|Model The saved thumbnail model, or `true` if the thumbnail was saved in a custom way
      */
     protected static function saveThumbnail($model, $file): Model|bool
@@ -84,25 +90,30 @@ trait HasThumbnail
 
         // If the `$thumbnailOptions` property on the model class is set,
         // custom options will be set separately
-        if (isset(static::$thumbnailOptions)) {
+        if (isset(static::$thumbnailOptions))
+        {
             $thumbnail = $thumbnail->setOptions(static::$thumbnailOptions);
         }
 
         $thumbnail = $thumbnail->create();
-        if (!empty($thumbnail)) {
+        if ( ! empty($thumbnail))
+        {
             $saveData = static::getSaveData($thumbnail, $file, $model);
 
             // If the model class has a `thumbnailCustomSave()` method,
             // that method will be called instead of saving the thumbnail to the database.
-            if (method_exists(static::class, 'thumbnailCustomSave')) {
+            if (method_exists(static::class, 'thumbnailCustomSave'))
+            {
                 return static::thumbnailCustomSave($thumbnail, $file, $model);
             }
 
             // If the `$thumbnailUpdateWillOverwrite` property on the model class is set to `true`,
             // the latest thumbnail for the model will be overwritten instead of creating a new one.
-            if (isset(static::$thumbnailUpdateWillOverwrite) && static::$thumbnailUpdateWillOverwrite) {
+            if (isset(static::$thumbnailUpdateWillOverwrite) && static::$thumbnailUpdateWillOverwrite)
+            {
                 $latestThumbnail = $model->latestThumbnail;
-                if ($latestThumbnail) {
+                if ($latestThumbnail)
+                {
                     return $latestThumbnail->fill($saveData)->save();
                 }
             }
@@ -115,9 +126,9 @@ trait HasThumbnail
     /**
      * Returns the data to be saved for the thumbnail.
      *
-     * @param $thumbnail // The generated thumbnail data
-     * @param $file // The file that was used to generate the thumbnail
-     * @param $model // The model the thumbnail is being saved for
+     * @param $thumbnail  // The generated thumbnail data
+     * @param $file  // The file that was used to generate the thumbnail
+     * @param $model  // The model the thumbnail is being saved for
      * @return array The data to be saved for the thumbnail
      */
     public static function getSaveData($thumbnail, $file, $model): array
@@ -130,9 +141,10 @@ trait HasThumbnail
 
         // If the model class has a `thumbnailSaveData()` method,
         // that method will be called and return data to save to db
-        if (method_exists(static::class, 'thumbnailSaveData')) {
+        if (method_exists(static::class, 'thumbnailSaveData'))
+        {
             $customData = static::thumbnailSaveData($thumbnail, $file, $model);
-            $data = array_merge($data, $customData);
+            $data       = array_merge($data, $customData);
         }
 
         return $data;

@@ -1,7 +1,15 @@
 {
     "name": "shishima/laravel-thumbnail",
-    "description": "This package is used to create thumbnail images for document files. It supports the following file types: doc, docx, xls, xlsx, gif, jpg, jpeg, png.",
+    "description": "This package is used to create thumbnail images for document files. It supports the following file types: doc, docx, xls, xlsx, pdf, gif, jpg, jpeg, png.",
+    "keywords": [
+        "laravel",
+        "thumbnail",
+        "document",
+        "preview"
+    ],
+    "homepage": "https://github.com/shishima123/laravel-thumbnail",
     "license": "MIT",
+    "type": "laravel-package",
     "authors": [
         {
             "name": "Phuoc Nguyen",
@@ -11,9 +19,9 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=8.0",
-        "illuminate/support": "^8.0|^9.0",
-        "illuminate/filesystem": "^8.0|^9.0",
-        "laravel/framework": "^8.0|^9.0"
+        "illuminate/support": "^8.0|^9.0|^10.0",
+        "illuminate/filesystem": "^8.0|^9.0|^10.0",
+        "laravel/framework": "^8.0|^9.0|^10.0"
     },
     "autoload": {
         "psr-4": {
@@ -23,11 +31,24 @@
             "src"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Shishima\\Thumbnail\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
     "extra": {
         "laravel": {
             "providers": [
                 "Shishima\\Thumbnail\\ThumbnailServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "orchestra/testbench": "7.x-dev",
+        "phpunit/phpunit": "9.6.x-dev"
     }
 }

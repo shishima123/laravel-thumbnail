@@ -104,7 +104,7 @@ class Thumbnail
     /**
      * Thumbnail constructor.
      *
-     * @param Imagick $imagick The Imagick instance to use for processing the files
+     * @param  Imagick  $imagick  The Imagick instance to use for processing the files
      */
     public function __construct(Imagick $imagick)
     {
@@ -114,17 +114,19 @@ class Thumbnail
     /**
      * Generates a thumbnail from the given file.
      *
-     * @param string|UploadedFile|null $file The file to generate the thumbnail
+     * @param  string|UploadedFile|null  $file  The file to generate the thumbnail
      * @return array An array containing the name, original name, and path of the generated thumbnail
      * @throws ImagickException|Exception|Throwable If an error occurs while processing the file
      */
     public function create(string|UploadedFile $file = null): array
     {
-        if (!empty($file)) {
+        if ( ! empty($file))
+        {
             $this->setFile($file);
         }
 
-        if (!$this->isFileCanGenerateThumbnail()) {
+        if ( ! $this->isFileCanGenerateThumbnail())
+        {
             return $this->getDefaultPath();
         }
 
@@ -141,34 +143,32 @@ class Thumbnail
      * It then merges the image layers using the specified layer method and writes the resulting image to the
      * thumbnail disk.
      *
-     * @param string $tempPath The path of the file to be processed
+     * @param  string  $tempPath  The path of the file to be processed
      * @return array An array containing the name, original name, and path of the generated thumbnail
      * @throws ImagickException|FileFormatInvalid If an error occurs while processing the file
      */
     protected function processing(string $tempPath): array
     {
-        $fileName = Str::of(pathinfo($tempPath, PATHINFO_FILENAME))
-            ->beforeLast('_')
-            ->append('_thumbnail_')
-            ->append(uniqid())
-            ->append('.')
-            ->append($this->getFormat())
-            ->snake();
+        $fileName = Str::of(pathinfo($tempPath, PATHINFO_FILENAME))->beforeLast('_')->append('_thumbnail_')->append(uniqid())->append('.')->append($this->getFormat())->snake();
 
         $fileOutPutDir = config('filesystems.disks.thumbnail.root');
         StorageHelper::createDirectory();
-        $fileOutPut = $fileOutPutDir . '/' . $fileName;
+        $fileOutPut = $fileOutPutDir.'/'.$fileName;
 
         $this->imagick->readImage($tempPath);
         $this->imagick->thumbnailImage($this->getWidth(), $this->getHeight());
         $this->imagick->setFormat($this->getFormat());
         $im = $this->imagick->mergeImageLayers($this->getLayer());
 
-        if ($im->writeImage($fileOutPut) === false) {
+        if ($im->writeImage($fileOutPut) === false)
+        {
             return $this->getDefaultPath();
         }
 
-        if ($this->shouldRemoveTempFile) {
+        $this->imagick->clear();
+
+        if ($this->shouldRemoveTempFile)
+        {
             StorageHelper::removeFile($tempPath);
         }
 
@@ -200,10 +200,7 @@ class Thumbnail
      */
     public function preProcessing(): static
     {
-        $this
-            ->setFileExtension($this->getFile())
-            ->setFileOriginalName($this->getFile())
-            ->setFileName();
+        $this->setFileExtension($this->getFile())->setFileOriginalName($this->getFile())->setFileName();
 
         return $this;
     }
@@ -211,12 +208,13 @@ class Thumbnail
     /**
      * Set the original name of the file.
      *
-     * @param string|UploadedFile $file The file or uploaded file.
+     * @param  string|UploadedFile  $file  The file or uploaded file.
      * @return static Returns an instance of the current object.
      */
     public function setFileOriginalName(string|UploadedFile $file): static
     {
-        $this->originName = match (true) {
+        $this->originName = match (true)
+        {
             $file instanceof UploadedFile => $this->getFile()->getClientOriginalName(),
             default => basename($file),
         };
@@ -239,30 +237,35 @@ class Thumbnail
      *
      * This method also sets the file name, origin name, and file extension based on the given file.
      *
-     * @param string|UploadedFile $file The file to be used for generating the thumbnail
+     * @param  string|UploadedFile  $file  The file to be used for generating the thumbnail
      * @throws FileNotFound|FileUploadNotSuccess If the file does not exist on the filesystem
      */
     public function setFile(string|UploadedFile $file): static
     {
         $fileFromRequest = true;
-        if (empty($file)) {
+        if (empty($file))
+        {
             throw FileNotFound::make();
         }
 
-        if (is_string($file)) {
+        if (is_string($file))
+        {
             $fileFromRequest = false;
-            if (!file_exists($file)) {
+            if ( ! file_exists($file))
+            {
                 throw FileNotFound::make();
             }
             $fileName = pathinfo($file, PATHINFO_BASENAME);
-            $file = new UploadedFile($file, $fileName);
+            $file     = new UploadedFile($file, $fileName);
         }
 
-        if (!($file instanceof UploadedFile)) {
+        if ( ! ($file instanceof UploadedFile))
+        {
             throw FileNotFound::make();
         }
 
-        if ($fileFromRequest && !$file->isValid()) {
+        if ($fileFromRequest && ! $file->isValid())
+        {
             throw FileUploadNotSuccess::make();
         }
 
@@ -286,7 +289,7 @@ class Thumbnail
     /**
      * Sets the height of the thumbnail.
      *
-     * @param int $height The height of the thumbnail
+     * @param  int  $height  The height of the thumbnail
      */
     public function setHeight(int $height): static
     {
@@ -307,7 +310,7 @@ class Thumbnail
     /**
      * Sets the width of the thumbnail.
      *
-     * @param int $width The width of the thumbnail
+     * @param  int  $width  The width of the thumbnail
      */
     public function setWidth(int $width): static
     {
@@ -328,8 +331,8 @@ class Thumbnail
     /**
      * Sets the width and height of the thumbnail.
      *
-     * @param int $width The width of the thumbnail
-     * @param int $height The height of the thumbnail
+     * @param  int  $width  The width of the thumbnail
+     * @param  int  $height  The height of the thumbnail
      */
     public function setSize(int $width, int $height): static
     {
@@ -341,7 +344,7 @@ class Thumbnail
     /**
      * Sets the layer method to use when merging image layers.
      *
-     * @param int $layer The layer method to use when merging image layers
+     * @param  int  $layer  The layer method to use when merging image layers
      */
     public function setLayer(int $layer): static
     {
@@ -362,7 +365,7 @@ class Thumbnail
     /**
      * Sets the ignore list for the thumbnail.
      *
-     * @param array $ignore The ignore list for the thumbnail
+     * @param  array  $ignore  The ignore list for the thumbnail
      */
     public function setIgnore(array $ignore): static
     {
@@ -387,7 +390,8 @@ class Thumbnail
      */
     protected function setFileExtension($file): static
     {
-        $this->fileExtension = match (true) {
+        $this->fileExtension = match (true)
+        {
             $file instanceof UploadedFile => strtolower($this->getFile()->getClientOriginalExtension()),
             default => pathinfo($file, PATHINFO_EXTENSION),
         };
@@ -408,7 +412,7 @@ class Thumbnail
     /**
      * Sets the output format for the thumbnail.
      *
-     * @param string $format The output format for the thumbnail
+     * @param  string  $format  The output format for the thumbnail
      */
     public function setFormat(string $format): static
     {
@@ -432,15 +436,17 @@ class Thumbnail
     /**
      * Sets the options for generating the thumbnail.
      *
-     * @param array $options The options for generating the thumbnail
+     * @param  array  $options  The options for generating the thumbnail
      * @return Thumbnail
      */
     public function setOptions(array $options): static
     {
         $options = Arr::only($options, array_keys(config('thumbnail.options')));
-        collect($options)->each(function ($value, $option) {
-            $method = 'set' . $option;
-            if (method_exists($this, $method)) {
+        collect($options)->each(function ($value, $option)
+        {
+            $method = 'set'.$option;
+            if (method_exists($this, $method))
+            {
                 call_user_func([$this, $method], $value);
             }
         });
@@ -455,9 +461,11 @@ class Thumbnail
     public function getOptions(): array
     {
         $options = array_keys(config('thumbnail.options'));
-        return collect($options)->map(function ($option) {
-            $method = 'get' . $option;
-            if (is_callable([$this, $method])) {
+        return collect($options)->map(function ($option)
+        {
+            $method = 'get'.$option;
+            if (is_callable([$this, $method]))
+            {
                 return [$option => $this->$method()];
             }
             return null;
@@ -473,12 +481,7 @@ class Thumbnail
     {
         $this->originName = $this->getFile()->getClientOriginalName();
 
-        $fileName = Str::of(pathinfo($this->getFileOriginalName(), PATHINFO_FILENAME))
-            ->append('_')
-            ->append(uniqid())
-            ->append('.')
-            ->append($this->getFileExtension())
-            ->snake();
+        $fileName = Str::of(pathinfo($this->getFileOriginalName(), PATHINFO_FILENAME))->append('_')->append(uniqid())->append('.')->append($this->getFileExtension())->snake();
 
         $this->fileName = $fileName;
         return $this;
@@ -501,7 +504,8 @@ class Thumbnail
      */
     protected function getDefaultPath(): array
     {
-        if (config('thumbnail.default.enable')) {
+        if (config('thumbnail.default.enable'))
+        {
             return [
                 'name' => $this->getFileName(),
                 'original_name' => $this->getFileOriginalName(),
@@ -514,7 +518,7 @@ class Thumbnail
     /**
      * If the format is not in the array of valid formats, throw an exception.
      *
-     * @param string $format The format of the file.
+     * @param  string  $format  The format of the file.
      *
      * @return bool A boolean value.
      * @throws FileFormatInvalid
@@ -522,7 +526,8 @@ class Thumbnail
     protected function validateOutputFormat(string $format): bool
     {
         $validFormat = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array($format, $validFormat)) {
+        if ( ! in_array($format, $validFormat))
+        {
             throw FileFormatInvalid::make();
         }
         return true;

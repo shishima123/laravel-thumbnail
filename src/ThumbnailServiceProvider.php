@@ -27,8 +27,7 @@ class ThumbnailServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/thumbnail.php',
-            'thumbnail'
+            __DIR__.'/../config/thumbnail.php', 'thumbnail'
         );
 
         $this->app->singleton(Thumbnail::class);
@@ -51,18 +50,19 @@ class ThumbnailServiceProvider extends ServiceProvider
      */
     protected function registerPublishing(): void
     {
-        if ($this->app->runningInConsole()) {
+        if ($this->app->runningInConsole())
+        {
             $this->publishes([
-                __DIR__ . '/../config/thumbnail.php' => config_path('thumbnail.php'),
+                __DIR__.'/../config/thumbnail.php' => config_path('thumbnail.php'),
             ], 'thumbnail-config');
 
             $this->publishes([
-                __DIR__ . '/../public' => public_path('vendor/laravel_thumbnail'),
+                __DIR__.'/../public' => public_path('vendor/laravel_thumbnail'),
             ], 'thumbnail-assets');
 
             $timestamp = date('Y_m_d_His', time());
             $this->publishes([
-                __DIR__ . '/../database/migrations/create_thumbnail_table.php.stub' => database_path(
+                __DIR__.'/../database/migrations/create_thumbnail_table.php.stub' => database_path(
                     "/migrations/{$timestamp}_create_thumbnail_table_table.php"
                 ),
             ], 'thumbnail-migrations');
