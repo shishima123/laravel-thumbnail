@@ -228,6 +228,23 @@ $options = [
 Thumbnail::setOptions($options)->create($file);
 ```
 
+#### doNotRemoveTempFileAfterConvert
+By default, the temporary file will be automatically deleted upon completion.
+Using this function, the temporary file will not be deleted after the conversion is completed.
+
+```php
+Thumbnail::doNotRemoveTempFileAfterConvert()->create($file);
+```
+
+#### shouldRemoveTempFileAfterConvert
+Contrary to `shouldRemoveTempFileAfterConvert`, the temporary file will be deleted.
+
+```php
+Thumbnail::shouldRemoveTempFileAfterConvert()->create($file);
+```
+
+__IMPORTANT!__ By default, the temporary file will be automatically deleted upon completion.
+
 ## Model events
 
 This feature relies on the model events feature of Laravel. When a request with a file upload is saved to the database,

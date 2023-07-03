@@ -2,6 +2,7 @@
 
 namespace Shishima\Thumbnail\Helper;
 
+use Illuminate\Support\Facades\Storage;
 use Shishima\Thumbnail\Exception\ConvertToPdf;
 
 class OfficeHelper
@@ -66,6 +67,10 @@ class OfficeHelper
         $output = substr_replace($tempPath, 'pdf', strrpos($tempPath, '.') + 1);
 
         shell_exec("unoconv -f pdf -e PageRange=1-1 $tempPath --output=$output");
+
+        // backup for case if unoconv is no longer used
+        // $outdir = Storage::disk('temp_thumbnail')->path('');
+        // shell_exec("/usr/bin/libreoffice --headless --convert-to 'pdf:writer_pdf_Export:{\"PageRange\":{\"type\":\"string\",\"value\":\"1\"}}' --outdir $outdir $tempPath");
 
         return static::removeTempFileAfterConvert($output, $tempPath);
     }

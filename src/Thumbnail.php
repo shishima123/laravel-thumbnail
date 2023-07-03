@@ -538,9 +538,20 @@ class Thumbnail
      *
      * @return static Returns an instance of the current object.
      */
-    protected function doNotRemoveTempFile(): static
+    public function doNotRemoveTempFileAfterConvert(): static
     {
         $this->shouldRemoveTempFile = false;
+        return $this;
+    }
+
+    /**
+     * Set the flag to indicate that the temporary file should be removed.
+     *
+     * @return static Returns an instance of the current object.
+     */
+    public function shouldRemoveTempFileAfterConvert(): static
+    {
+        $this->shouldRemoveTempFile = true;
         return $this;
     }
 }
